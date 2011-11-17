@@ -3,12 +3,18 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProtoDal", "ProtoDal\ProtoDal.csproj", "{8EBEBB4A-E359-4C42-98EE-3C7C6D22B771}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProtoDalTests", "ProtoDalTests\ProtoDalTests.csproj", "{84EF94B4-67FE-4234-9858-92C49CED8986}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{84EF94B4-67FE-4234-9858-92C49CED8986}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{84EF94B4-67FE-4234-9858-92C49CED8986}.Debug|x86.Build.0 = Debug|Any CPU
+		{84EF94B4-67FE-4234-9858-92C49CED8986}.Release|x86.ActiveCfg = Release|Any CPU
+		{84EF94B4-67FE-4234-9858-92C49CED8986}.Release|x86.Build.0 = Release|Any CPU
 		{8EBEBB4A-E359-4C42-98EE-3C7C6D22B771}.Debug|x86.ActiveCfg = Debug|x86
 		{8EBEBB4A-E359-4C42-98EE-3C7C6D22B771}.Debug|x86.Build.0 = Debug|x86
 		{8EBEBB4A-E359-4C42-98EE-3C7C6D22B771}.Release|x86.ActiveCfg = Release|x86
