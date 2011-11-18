@@ -2,6 +2,7 @@ using System;
 using System.Data.Common;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace ProtoDal
@@ -38,13 +39,17 @@ namespace ProtoDal
 			}
 		}
 		
+		// It's hard to deal with the case where the IEnumerable is returned but never enumerated over since
+		// the Dispose method is on the enumerator. The Task doesn't provide a Dispose method either
+		// so you are pretty much forced to gather the result in memory to allow clean resource management.
+		
 		public static Task<IEnumerable<TRow>> GetRowsTask<TRow>(
 			this IConnectionProvider provider, 
 			Action<IDbCommand> prepareCommand, 
 			Func<IDataReader, TRow> rowFilter)
-		{			
+		{	
 			// TODO - can special case if DbCommand as SqlCommand and use BeginExecuteReader
-			return Task<IEnumerable<TRow>>.Factory.StartNew(() => GetRows(provider, prepareCommand, rowFilter), TaskCreationOptions.LongRunning);
+			return Task<IEnumerable<TRow>>.Factory.StartNew(() => GetRows(provider, prepareCommand, rowFilter).ToList(), TaskCreationOptions.LongRunning);
 		}
 	}
 }
