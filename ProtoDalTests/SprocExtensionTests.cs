@@ -25,13 +25,13 @@ namespace ProtoDalTests
 		private IDataReader reader;
 		
 		[Test]
-		public void Test_ResourceDisposalWhenNoRowsAreReturned()
+		public void Test_ResourceDisposalWhenRowIsReturned()
 		{
 			provider.Expect(p => p.GetOpenConnection()).Return(connection);
 			connection.Expect(c => c.CreateCommand()).Return(command);
 			command.Expect(c => c.ExecuteReader(CommandBehavior.SequentialAccess)).Return(reader);
 		
-			// TODO - Find some way to return true, false
+			reader.Expect(r => r.Read()).Return(true).Repeat.Once();
 			reader.Expect(r => r.Read()).Return(false);
 			reader.Expect(r => r.Dispose());
 			command.Expect(c => c.Dispose());
@@ -46,7 +46,8 @@ namespace ProtoDalTests
 			// Without ToList the enumeration is never evaluated
 			
 			Assert.IsTrue(prepareCommandHasBeenInvoked, "prepareCommand was not invoked");
-			Assert.IsFalse(filterRowsHasBeenInvoked, "filterRows was invoked");
+			Assert.IsTrue(filterRowsHasBeenInvoked, "filterRows was invoked");
+			Assert.AreEqual(10, result.First());
 			
 			reader.VerifyAllExpectations();
 			command.VerifyAllExpectations();
@@ -54,26 +55,65 @@ namespace ProtoDalTests
 		}
 		
 		[Test]
-		public void Test_ResourceDisposalWhenPreperationFails()
+		public void Test_ResourceDisposalWhenPreparationFails()
 		{
 			provider.Expect(p => p.GetOpenConnection()).Return(connection);
 			connection.Expect(c => c.CreateCommand()).Return(command);
-			command.Expect(c => c.ExecuteReader(CommandBehavior.SequentialAccess)).Return(reader);
-		
-			// TODO - Find some way to return true, false
+			
 			command.Expect(c => c.Dispose());
 			connection.Expect(c => c.Dispose());
 			
 			var filterRowsHasBeenInvoked = false;
 			
-			// TODO - find version of nunit that supports Assert.Throw(...)
-
-			var result = provider.GetRows(
-				(cmd) => { throw new Exception("preperation failed"); }, 
-				(rdr) => { filterRowsHasBeenInvoked = true; return 10; }).ToList();
-			// Without ToList the enumeration is never evaluated
+			var expectedException = new Exception("preperation failed");
+			
+			try
+			{
+				provider.GetRows(
+					(cmd) => { throw expectedException; }, 
+					(rdr) => { filterRowsHasBeenInvoked = true; return 10; }).ToList();
+				// Without ToList the enumeration is never evaluated				
+			}
+			catch (Exception ex)
+			{
+				Assert.AreEqual(expectedException, ex);	
+			}
 			
 			Assert.IsFalse(filterRowsHasBeenInvoked, "filterRows was invoked");
+			
+			command.VerifyAllExpectations();
+			provider.VerifyAllExpectations();
+		}
+		
+		[Test]
+		public void Test_ResourceDisposalWhenFilterFails()
+		{
+			provider.Expect(p => p.GetOpenConnection()).Return(connection);
+			connection.Expect(c => c.CreateCommand()).Return(command);
+			command.Expect(c => c.ExecuteReader(CommandBehavior.SequentialAccess)).Return(reader);
+			
+			reader.Expect(r => r.Read()).Return(true).Repeat.Once();
+			reader.Expect(r => r.Dispose());
+			command.Expect(c => c.Dispose());
+			connection.Expect(c => c.Dispose());
+			
+			var prepareCommandHasBeenInvoked = false;
+			
+			var expectedException = new Exception("filter failed");
+			
+			try
+			{
+				provider.GetRows(
+					(cmd) => { prepareCommandHasBeenInvoked = true; }, 
+					(rdr) => { throw expectedException; return 10; }).ToList();
+				// Without ToList the enumeration is never evaluateid				
+			}
+			catch (Exception ex)
+			{
+				Assert.AreEqual(expectedException, ex);	
+			}
+			
+			Assert.IsTrue(prepareCommandHasBeenInvoked, "preperation was not invoked");
 			
 			command.VerifyAllExpectations();
 			provider.VerifyAllExpectations();
